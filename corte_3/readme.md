@@ -1,4 +1,4 @@
-FASE 1 – OBSERVAR (sin modificar código)
+**FASE 1 – OBSERVAR (sin modificar código)**
 
 -¿Qué hace el sistema actualmente?
 
@@ -25,13 +25,25 @@ FASE 1 – OBSERVAR (sin modificar código)
     -Acumular conexiones fallidas.
 
 
-FASE 2 – APLICAR (Extensión del Circuit Breaker)
+**FASE 2 – APLICAR (Extensión del Circuit Breaker)**
 
-### **analizar y decidir:**
+ **analizar y decidir:**
 
 -¿Cada servicio debe tener su propio contador de fallos?
+
+    Sí, cada servicio debería tener su propio contador para el estado (abierto o cerrado) del Circuit Breaker, porque cada microservicio puede fallar de manera independiente.
+
 -¿El circuito debe abrirse de forma independiente por servicio?
+
+    Sí, cada microservicio debe tener:
+
+    -su contador
+    -su estado de circuito
+    -sus reglas de recuperación
+
 -¿Qué pasa si falla un servicio pero el otro sigue funcionando?
+
+    El gateway debe seguir respondiendo con los servicios disponibles, la idea es evitar que una falla derribe el sistema en su totalidad.
 
 FASE 3 – INVESTIGAR (Half-Open)
 
