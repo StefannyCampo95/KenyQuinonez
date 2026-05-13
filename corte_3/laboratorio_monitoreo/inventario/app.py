@@ -12,11 +12,11 @@ def inventario():
 
     return jsonify([
         {
-            "producto": "Laptop",
+            "producto": "Blusas",
             "stock": 10
         },
         {
-            "producto": "Teclado",
+            "producto": "Pantalones",
             "stock": 20
         }
     ])

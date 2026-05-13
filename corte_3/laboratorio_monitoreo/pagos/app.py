@@ -1,30 +1,13 @@
-from flask import Flask, jsonify # type: ignore
-import random
+from flask import Flask, jsonify  # type: ignore
 import time
 
 app = Flask(__name__)
+
 
 @app.route("/pagos")
 def pagos():
 
     print("[PAGOS] Procesando pago...", flush=True)
-
-    time.sleep(2)
-
-    fallo = random.randint(1, 5)
-
-    # Simular fallos aleatorios
-    if fallo >= 3:
-
-        print(
-            "[ERROR] Fallo procesando pago",
-            flush=True
-        )
-
-        return jsonify({
-            "status": "error",
-            "mensaje": "No fue posible procesar el pago"
-        }), 500
 
     return jsonify({
         "status": "ok",
@@ -35,10 +18,10 @@ def pagos():
 @app.route("/health")
 def health():
 
-    return {
+    return jsonify({
         "status": "ok",
         "service": "pagos"
-    }
+    })
 
 
 if __name__ == "__main__":
