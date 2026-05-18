@@ -25,12 +25,12 @@ def inventario():
 
     inventario = [
         {
-            "producto": "Laptop",
+            "producto": "Blusas",
             "stock": 10
         },
         {
-            "producto": "Mouse",
-            "stock": 20
+            "producto": "Pantalones",
+            "stock": 15
         }
     ]
 
@@ -73,6 +73,5 @@ def metrics():
         "peticiones": peticiones
     }
 
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port= 5000, debug=True)

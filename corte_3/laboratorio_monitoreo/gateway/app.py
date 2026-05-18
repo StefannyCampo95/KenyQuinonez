@@ -19,7 +19,7 @@ fallos_pagos = 0
 circuito_abierto = False
 
 # -------------------------
-# SISTEMA
+# SISTEMA DISTRIBUIDO
 # -------------------------
 
 @app.route("/sistema")
@@ -140,3 +140,71 @@ def sistema():
         return {
             "error": "Servicio pagos no disponible"
         }, 503
+
+
+# -------------------------
+# HEALTH CHECK
+# -------------------------
+
+@app.route("/health")
+def health():
+
+    print(
+        "[HEALTH] Gateway activo",
+        flush=True
+    )
+
+    return {
+        "status": "ok",
+        "service": "gateway"
+    }
+
+
+# -------------------------
+# MONITOREO
+# -------------------------
+
+@app.route("/monitor")
+def monitor():
+
+    servicios = {
+        "pedidos": "http://pedidos:5000/health",
+        "inventario": "http://inventario:5000/health",
+        "pagos": "http://pagos:5000/health"
+    }
+
+    estados = {}
+
+    for nombre, url in servicios.items():
+
+        try:
+
+            response = requests.get(url, timeout=2)
+
+            estados[nombre] = response.json()
+
+        except:
+
+            estados[nombre] = {
+                "status": "down"
+            }
+
+    return jsonify(estados)
+
+
+# -------------------------
+# MÉTRICAS
+# -------------------------
+
+@app.route("/metrics")
+def metrics():
+
+    return {
+        "peticiones": peticiones,
+        "errores": errores,
+        "fallos_pagos": fallos_pagos,
+        "circuito_abierto": circuito_abierto
+    }
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port= 5000, debug=True)
