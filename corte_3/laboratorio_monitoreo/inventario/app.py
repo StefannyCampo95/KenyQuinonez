@@ -3,31 +3,74 @@ import time
 
 app = Flask(__name__)
 
+peticiones = 0
+
+# -------------------------
+# INVENTARIO
+# -------------------------
+
 @app.route("/inventario")
 def inventario():
 
-    print("[INVENTARIO] Consultando productos...", flush=True)
+    global peticiones
 
-    time.sleep(1)
+    peticiones += 1
 
-    return jsonify([
+    inicio = time.time()
+
+    print(
+        "[INVENTARIO] Consultando stock",
+        flush=True
+    )
+
+    inventario = [
         {
-            "producto": "Blusas",
+            "producto": "Laptop",
             "stock": 10
         },
         {
-            "producto": "Pantalones",
+            "producto": "Mouse",
             "stock": 20
         }
-    ])
+    ]
 
+    fin = time.time()
+
+    print(
+        f"[MONITOREO] Tiempo respuesta inventario: {fin - inicio:.2f}",
+        flush=True
+    )
+
+    return jsonify(inventario)
+
+
+# -------------------------
+# HEALTH CHECK
+# -------------------------
 
 @app.route("/health")
 def health():
 
+    print(
+        "[HEALTH] Servicio inventario activo",
+        flush=True
+    )
+
     return {
         "status": "ok",
         "service": "inventario"
+    }
+
+
+# -------------------------
+# MÉTRICAS
+# -------------------------
+
+@app.route("/metrics")
+def metrics():
+
+    return {
+        "peticiones": peticiones
     }
 
 

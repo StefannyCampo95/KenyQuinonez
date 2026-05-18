@@ -1,27 +1,71 @@
-from flask import Flask, jsonify  # type: ignore
+from flask import Flask, jsonify # type: ignore
 import time
 
 app = Flask(__name__)
 
+peticiones = 0
+
+# -------------------------
+# PAGOS
+# -------------------------
 
 @app.route("/pagos")
 def pagos():
 
-    print("[PAGOS] Procesando pago...", flush=True)
+    global peticiones
 
-    return jsonify({
+    peticiones += 1
+
+    inicio = time.time()
+
+    print(
+        "[PAGOS] Procesando pagos",
+        flush=True
+    )
+
+    pago = {
         "status": "ok",
-        "mensaje": "Pago procesado correctamente"
-    })
+        "mensaje": "Pago realizado correctamente"
+    }
 
+    fin = time.time()
+
+    print(
+        f"[MONITOREO] Tiempo respuesta pagos: {fin - inicio:.2f}",
+        flush=True
+    )
+
+    return jsonify(pago)
+
+
+# -------------------------
+# HEALTH CHECK
+# -------------------------
 
 @app.route("/health")
 def health():
 
-    return jsonify({
+    print(
+        "[HEALTH] Servicio pagos activo",
+        flush=True
+    )
+
+    return {
         "status": "ok",
         "service": "pagos"
-    })
+    }
+
+
+# -------------------------
+# MÉTRICAS
+# -------------------------
+
+@app.route("/metrics")
+def metrics():
+
+    return {
+        "peticiones": peticiones
+    }
 
 
 if __name__ == "__main__":

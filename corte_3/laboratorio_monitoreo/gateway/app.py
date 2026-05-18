@@ -1,0 +1,142 @@
+from flask import Flask, jsonify # type: ignore
+import requests # type: ignore
+import time
+
+app = Flask(__name__)
+
+# -------------------------
+# MÉTRICAS
+# -------------------------
+
+peticiones = 0
+errores = 0
+
+# -------------------------
+# CIRCUIT BREAKER
+# -------------------------
+
+fallos_pagos = 0
+circuito_abierto = False
+
+# -------------------------
+# SISTEMA
+# -------------------------
+
+@app.route("/sistema")
+def sistema():
+
+    global peticiones
+    global errores
+    global fallos_pagos
+    global circuito_abierto
+
+    peticiones += 1
+
+    # -------------------------
+    # CIRCUITO ABIERTO
+    # -------------------------
+
+    if circuito_abierto:
+
+        print(
+            "[CIRCUIT BREAKER] Servicio pagos bloqueado",
+            flush=True
+        )
+
+        return {
+            "error": "Servicio pagos temporalmente bloqueado"
+        }, 503
+
+    try:
+
+        inicio = time.time()
+
+        # -------------------------
+        # PEDIDOS
+        # -------------------------
+
+        print(
+            "[GATEWAY] Consultando pedidos",
+            flush=True
+        )
+
+        pedidos = requests.get(
+            "http://pedidos:5000/pedidos",
+            timeout=3
+        )
+
+        # -------------------------
+        # INVENTARIO
+        # -------------------------
+
+        print(
+            "[GATEWAY] Consultando inventario",
+            flush=True
+        )
+
+        inventario = requests.get(
+            "http://inventario:5000/inventario",
+            timeout=3
+        )
+
+        # -------------------------
+        # PAGOS
+        # -------------------------
+
+        print(
+            "[GATEWAY] Consultando pagos",
+            flush=True
+        )
+
+        pagos = requests.get(
+            "http://pagos:5000/pagos",
+            timeout=3
+        )
+
+        # Reiniciar fallos si funciona
+        fallos_pagos = 0
+
+        fin = time.time()
+
+        print(
+            f"[MONITOREO] Tiempo respuesta: {fin - inicio:.2f}",
+            flush=True
+        )
+
+        return jsonify({
+            "pedidos": pedidos.json(),
+            "inventario": inventario.json(),
+            "pagos": pagos.json()
+        })
+
+    except Exception as e:
+
+        errores += 1
+        fallos_pagos += 1
+
+        print(
+            f"[ERROR] Fallo pagos #{fallos_pagos}",
+            flush=True
+        )
+
+        print(
+            f"[DETALLE] {e}",
+            flush=True
+        )
+
+        # -------------------------
+        # ABRIR CIRCUITO
+        # -------------------------
+
+        if fallos_pagos >= 3:
+
+            circuito_abierto = True
+
+            print(
+                "[CIRCUIT BREAKER] Circuito abierto",
+                flush=True
+            )
+
+        return {
+            "error": "Servicio pagos no disponible"
+        }, 503
