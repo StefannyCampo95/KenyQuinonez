@@ -4,23 +4,23 @@ import time
 
 app = Flask(__name__)
 
-# -------------------------
+
 # MÉTRICAS
-# -------------------------
+
 
 peticiones = 0
 errores = 0
 
-# -------------------------
+
 # CIRCUIT BREAKER
-# -------------------------
+
 
 fallos_pagos = 0
 circuito_abierto = False
 
-# -------------------------
-# SISTEMA DISTRIBUIDO
-# -------------------------
+
+# SISTEMA 
+
 
 @app.route("/sistema")
 def sistema():
@@ -32,9 +32,9 @@ def sistema():
 
     peticiones += 1
 
-    # -------------------------
+    
     # CIRCUITO ABIERTO
-    # -------------------------
+    
 
     if circuito_abierto:
 
@@ -51,9 +51,9 @@ def sistema():
 
         inicio = time.time()
 
-        # -------------------------
+       
         # PEDIDOS
-        # -------------------------
+        
 
         print(
             "[GATEWAY] Consultando pedidos",
@@ -65,9 +65,9 @@ def sistema():
             timeout=3
         )
 
-        # -------------------------
+        
         # INVENTARIO
-        # -------------------------
+       
 
         print(
             "[GATEWAY] Consultando inventario",
@@ -79,9 +79,9 @@ def sistema():
             timeout=3
         )
 
-        # -------------------------
+        
         # PAGOS
-        # -------------------------
+        
 
         print(
             "[GATEWAY] Consultando pagos",
@@ -124,9 +124,8 @@ def sistema():
             flush=True
         )
 
-        # -------------------------
         # ABRIR CIRCUITO
-        # -------------------------
+        
 
         if fallos_pagos >= 3:
 
@@ -142,9 +141,9 @@ def sistema():
         }, 503
 
 
-# -------------------------
+
 # HEALTH CHECK
-# -------------------------
+
 
 @app.route("/health")
 def health():
@@ -160,9 +159,9 @@ def health():
     }
 
 
-# -------------------------
+
 # MONITOREO
-# -------------------------
+
 
 @app.route("/monitoreo")
 def monitoreo():
@@ -192,9 +191,9 @@ def monitoreo():
     return jsonify(estados)
 
 
-# -------------------------
+
 # MÉTRICAS
-# -------------------------
+
 
 @app.route("/metricas")
 def metricas():

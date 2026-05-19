@@ -5,9 +5,9 @@ app = Flask(__name__)
 
 peticiones = 0
 
-# -------------------------
+
 # INVENTARIO
-# -------------------------
+
 
 @app.route("/inventario")
 def inventario():
@@ -44,9 +44,9 @@ def inventario():
     return jsonify(inventario)
 
 
-# -------------------------
+
 # HEALTH CHECK
-# -------------------------
+
 
 @app.route("/health")
 def health():
@@ -62,9 +62,9 @@ def health():
     }
 
 
-# -------------------------
+
 # MÉTRICAS
-# -------------------------
+
 
 @app.route("/metricas")
 def metricas():
