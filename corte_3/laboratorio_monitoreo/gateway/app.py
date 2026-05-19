@@ -164,8 +164,8 @@ def health():
 # MONITOREO
 # -------------------------
 
-@app.route("/monitor")
-def monitor():
+@app.route("/monitoreo")
+def monitoreo():
 
     servicios = {
         "pedidos": "http://pedidos:5000/health",
@@ -196,8 +196,8 @@ def monitor():
 # MÉTRICAS
 # -------------------------
 
-@app.route("/metrics")
-def metrics():
+@app.route("/metricas")
+def metricas():
 
     return {
         "peticiones": peticiones,

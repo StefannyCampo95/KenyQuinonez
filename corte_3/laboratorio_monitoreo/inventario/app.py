@@ -66,8 +66,8 @@ def health():
 # MÉTRICAS
 # -------------------------
 
-@app.route("/metrics")
-def metrics():
+@app.route("/metricas")
+def metricas():
 
     return {
         "peticiones": peticiones

@@ -26,11 +26,11 @@ def pedidos():
     pedidos = [
         {
             "id": 1,
-            "producto": "Laptop"
+            "producto": "Blusas"
         },
         {
             "id": 2,
-            "producto": "Mouse"
+            "producto": "Pantalones"
         }
     ]
 
@@ -66,8 +66,8 @@ def health():
 # MÉTRICAS
 # -------------------------
 
-@app.route("/metrics")
-def metrics():
+@app.route("/metricas")
+def metricas():
 
     return {
         "peticiones": peticiones
