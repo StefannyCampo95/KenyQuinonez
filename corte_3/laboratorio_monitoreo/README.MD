@@ -31,7 +31,7 @@ Docker Compose
 
 ─ pedidos ─ inventario ─ pagos ─ monitor ─ gateway ─ docker-compose.yml
 
-
+# Funcionamiento
 
 1. **CARGAMOS TODOS LOS SERVICIOS EN DOCKER COMPOSE**
     docker-compose up --build
