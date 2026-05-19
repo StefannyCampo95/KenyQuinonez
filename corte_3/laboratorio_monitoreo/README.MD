@@ -1,3 +1,38 @@
+# Introducción
+
+Este laboratorio tiene como objetivo implementar monitoreo básico en un sistema distribuido compuesto por múltiples microservicios.  
+
+Se desarrolló un sistema de pedidos utilizando Flask y Docker Compose, implementando logs, health checks, monitoreo centralizado, simulación de fallos y métricas básicas para analizar el comportamiento del sistema ante errores.
+
+# Arquitectura del Sistema
+
+El sistema está compuesto por 5 microservicios:
+
+Gateway - Punto central de acceso - 5000
+
+Pedidos - Procesamiento de pedidos - 5001
+
+Inventario - Consulta de inventario - 5002 
+
+Pagos - Procesamiento de pagos - 5003 
+
+La arquitectura funciona de la siguiente manera:
+
+Cliente → Gateway → Microservicios
+
+# Tecnologías Utilizadas
+
+Python
+Flask
+Docker
+Docker Compose
+
+# Estructura del Proyecto
+
+─ pedidos ─ inventario ─ pagos ─ monitor ─ gateway ─ docker-compose.yml
+
+
+
 1. **CARGAMOS TODOS LOS SERVICIOS EN DOCKER COMPOSE**
     docker-compose up --build
 
