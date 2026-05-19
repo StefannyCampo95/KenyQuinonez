@@ -46,11 +46,22 @@
 
     ![logs](EVIDENCIAS/logs_dockercompose.png)
 
+    ![logs](EVIDENCIAS/logs_compose.png)
+
     ![logs](EVIDENCIAS/logs_sistema.png)
 
     ![logs](EVIDENCIAS/logs_pagos.png)
 
+7. **SIMULACIÓN DE FALLOS**
+    Apagamos el servicio de pagos con:
+    docker stop laboratorio_monitoreo-pagos-1
 
+    ![fallos](EVIDENCIAS/fallo_pagos.png)
+
+    Ejecutamos:
+    docker logs -f laboratorio_monitoreo-gateway-1
+
+    ![fallos](EVIDENCIAS/circuit_breaker_pagos.png)
 
 
 
