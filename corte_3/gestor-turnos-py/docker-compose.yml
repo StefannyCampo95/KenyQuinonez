@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+
+  users-service:
+    build: ./users-service
+    ports:
+      - "5001:5000"
+
+  turns-service:
+    build: ./turns-service
+    ports:
+      - "5002:5000"
