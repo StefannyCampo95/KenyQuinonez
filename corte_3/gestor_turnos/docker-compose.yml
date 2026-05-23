@@ -1,13 +1,45 @@
-version: "3"
-
 services:
 
-  users-service:
-    build: ./users-service
+  gateway:
+    build: ./gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - usuarios
+      - turnos
+      - historial
+
+  usuarios:
+    build: ./usuarios
     ports:
       - "5001:5000"
 
-  turns-service:
-    build: ./turns-service
+  turnos:
+    build: ./turnos
     ports:
       - "5002:5000"
+    depends_on:
+      - notificaciones
+      - historial
+
+  notificaciones:
+    build: ./notificaciones
+    ports:
+      - "5003:5000"
+
+  historial:
+    build: ./historial
+    ports:
+      - "5004:5000"
+
+  db:
+    image: mysql:8.0
+    env_file:
+      - .env
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
