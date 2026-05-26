@@ -1,10 +1,38 @@
+import os
 from flask import Flask, request, jsonify # type: ignore
 import time
 from datetime import datetime
 import mysql.connector # type: ignore
-import os
 
 app = Flask(__name__)
+
+# =========================
+# MYSQL
+# =========================
+
+def get_connection():
+
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+
+conexion = get_connection()
+
+cursor = conexion.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS notificaciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    telefono VARCHAR(20),
+    mensaje TEXT,
+    fecha DATETIME
+)
+""")
+
+conexion.commit()
 
 # =========================
 # VARIABLES
@@ -14,78 +42,15 @@ peticiones = 0
 errores = 0
 
 # =========================
-# CONEXION MYSQL
-# =========================
-
-conexion = mysql.connector.connect(
-    host=os.getenv("MYSQL_HOST"),
-    user=os.getenv("MYSQL_USER"),
-    password=os.getenv("MYSQL_PASSWORD"),
-    database=os.getenv("MYSQL_DATABASE")
-)
-
-cursor = conexion.cursor(dictionary=True)
-
-# =========================
-# CREAR TABLA
-# =========================
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS notificaciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    telefono VARCHAR(20),
-    mensaje TEXT,
-    fecha VARCHAR(50)
-)
-""")
-
-conexion.commit()
-
-# =========================
-# HOME
-# =========================
-
-@app.route("/")
-def home():
-
-    return {
-        "mensaje": "Servicio notificaciones funcionando"
-    }
-
-# =========================
 # HEALTH CHECK
 # =========================
 
 @app.route("/health")
 def health():
 
-    print(
-        "[HEALTH] Servicio notificaciones activo",
-        flush=True
-    )
-
     return {
         "status": "ok",
         "service": "notificaciones"
-    }
-
-# =========================
-# METRICAS
-# =========================
-
-@app.route("/metricas")
-def metricas():
-
-    cursor.execute(
-        "SELECT COUNT(*) AS total FROM notificaciones"
-    )
-
-    total = cursor.fetchone()
-
-    return {
-        "peticiones": peticiones,
-        "errores": errores,
-        "notificaciones_enviadas": total["total"]
     }
 
 # =========================
@@ -96,78 +61,22 @@ def metricas():
 def notificacion():
 
     global peticiones
-    global errores
 
     peticiones += 1
-
-    inicio = time.time()
 
     try:
 
         data = request.json
 
-        # =========================
-        # VALIDAR BODY
-        # =========================
-
-        if (
-            not data
-            or "telefono" not in data
-            or "mensaje" not in data
-        ):
-
-            errores += 1
-
-            return jsonify({
-                "error": "Telefono y mensaje son obligatorios"
-            }), 400
-
         telefono = str(data["telefono"])
         mensaje = str(data["mensaje"])
 
-        # =========================
-        # VALIDAR TELEFONO
-        # =========================
-
-        if not telefono.isdigit():
-
-            errores += 1
-
-            return jsonify({
-                "error": "El telefono solo debe contener numeros"
-            }), 400
-
-        # =========================
-        # VALIDAR LONGITUD
-        # =========================
-
-        if len(telefono) != 10:
-
-            errores += 1
-
-            return jsonify({
-                "error": "El telefono debe tener 10 digitos"
-            }), 400
-
-        # =========================
-        # FECHA
-        # =========================
-
-        fecha = datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-
-        # =========================
-        # INSERTAR NOTIFICACION
-        # =========================
+        fecha = datetime.now()
 
         cursor.execute("""
-        INSERT INTO notificaciones (
-            telefono,
-            mensaje,
-            fecha
-        )
-        VALUES (%s, %s, %s)
+            INSERT INTO notificaciones
+            (telefono, mensaje, fecha)
+            VALUES (%s, %s, %s)
         """, (
             telefono,
             mensaje,
@@ -181,30 +90,11 @@ def notificacion():
             flush=True
         )
 
-        fin = time.time()
-
-        print(
-            f"[MONITOREO] Tiempo respuesta notificaciones: {fin - inicio:.2f}",
-            flush=True
-        )
-
         return jsonify({
-            "mensaje": "Notificacion enviada",
-            "notificacion": {
-                "telefono": telefono,
-                "mensaje": mensaje,
-                "fecha": fecha
-            }
+            "mensaje": "Notificacion enviada"
         })
 
     except Exception as e:
-
-        errores += 1
-
-        print(
-            f"[ERROR NOTIFICACIONES] {e}",
-            flush=True
-        )
 
         return jsonify({
             "error": str(e)
@@ -217,25 +107,25 @@ def notificacion():
 @app.route("/listar_notificaciones")
 def listar_notificaciones():
 
-    global peticiones
+    cursor.execute("SELECT * FROM notificaciones")
 
-    peticiones += 1
+    resultados = cursor.fetchall()
 
-    print(
-        "[NOTIFICACIONES] Consultando notificaciones",
-        flush=True
-    )
+    notificaciones = []
 
-    cursor.execute(
-        "SELECT * FROM notificaciones"
-    )
+    for notificacion in resultados:
 
-    notificaciones = cursor.fetchall()
+        notificaciones.append({
+            "id": notificacion[0],
+            "telefono": notificacion[1],
+            "mensaje": notificacion[2]
+        })
 
     return jsonify({
         "notificaciones": notificaciones
     })
 
+# =========================
 
 if __name__ == "__main__":
 

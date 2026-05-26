@@ -12,17 +12,6 @@ peticiones = 0
 errores = 0
 
 # =========================
-# HOME
-# =========================
-
-@app.route("/")
-def home():
-
-    return {
-        "mensaje": "Gateway gestor de turnos funcionando"
-    }
-
-# =========================
 # HEALTH CHECK
 # =========================
 
@@ -67,15 +56,9 @@ def crear_usuario():
 
     try:
 
-        print(
-            "[GATEWAY] Enviando peticion a usuarios",
-            flush=True
-        )
-
         response = requests.post(
             "http://usuarios:5000/crear_usuario",
-            json=request.json,
-            timeout=3
+            json=request.json
         )
 
         fin = time.time()
@@ -107,28 +90,15 @@ def crear_usuario():
 @app.route("/listar_usuarios")
 def listar_usuarios():
 
-    global peticiones
-    global errores
-
-    peticiones += 1
-
     try:
 
-        print(
-            "[GATEWAY] Consultando usuarios",
-            flush=True
-        )
-
         response = requests.get(
-            "http://usuarios:5000/listar_usuarios",
-            timeout=5
+            "http://usuarios:5000/listar_usuarios"
         )
 
         return jsonify(response.json())
 
     except Exception as e:
-
-        errores += 1
 
         print(
             f"[ERROR GATEWAY USUARIOS] {e}",
@@ -155,15 +125,9 @@ def crear_turno():
 
     try:
 
-        print(
-            "[GATEWAY] Enviando peticion a turnos",
-            flush=True
-        )
-
         response = requests.post(
             "http://turnos:5000/turno",
-            json=request.json,
-            timeout=3
+            json=request.json
         )
 
         fin = time.time()
@@ -195,28 +159,15 @@ def crear_turno():
 @app.route("/listar_turnos")
 def listar_turnos():
 
-    global peticiones
-    global errores
-
-    peticiones += 1
-
     try:
 
-        print(
-            "[GATEWAY] Consultando turnos",
-            flush=True
-        )
-
         response = requests.get(
-            "http://turnos:5000/listar_turnos",
-            timeout=3
+            "http://turnos:5000/listar_turnos"
         )
 
         return jsonify(response.json())
 
     except Exception as e:
-
-        errores += 1
 
         print(
             f"[ERROR GATEWAY TURNOS] {e}",
@@ -234,28 +185,15 @@ def listar_turnos():
 @app.route("/historial")
 def historial():
 
-    global peticiones
-    global errores
-
-    peticiones += 1
-
     try:
 
-        print(
-            "[GATEWAY] Consultando historial",
-            flush=True
-        )
-
         response = requests.get(
-            "http://historial:5000/listar_historial",
-            timeout=3
+            "http://historial:5000/listar_historial"
         )
 
         return jsonify(response.json())
 
     except Exception as e:
-
-        errores += 1
 
         print(
             f"[ERROR GATEWAY HISTORIAL] {e}",
@@ -264,45 +202,6 @@ def historial():
 
         return jsonify({
             "error": "Error obteniendo historial"
-        }), 500
-
-# =========================
-# NOTIFICACIONES
-# =========================
-
-@app.route("/notificaciones")
-def notificaciones():
-
-    global peticiones
-    global errores
-
-    peticiones += 1
-
-    try:
-
-        print(
-            "[GATEWAY] Consultando notificaciones",
-            flush=True
-        )
-
-        response = requests.get(
-            "http://notificaciones:5000/listar_notificaciones",
-            timeout=3
-        )
-
-        return jsonify(response.json())
-
-    except Exception as e:
-
-        errores += 1
-
-        print(
-            f"[ERROR GATEWAY NOTIFICACIONES] {e}",
-            flush=True
-        )
-
-        return jsonify({
-            "error": "Error obteniendo notificaciones"
         }), 500
 
 

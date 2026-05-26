@@ -1,10 +1,36 @@
 from flask import Flask, request, jsonify # type: ignore
-import time
 from datetime import datetime
-import mysql.connector # type: ignore
+import mysql.connector # type: ignore # type: 
 import os
 
 app = Flask(__name__)
+
+# =========================
+# MYSQL
+# =========================
+
+def get_connection():
+
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+
+conexion = get_connection()
+
+cursor = conexion.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS historial (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    evento TEXT,
+    fecha DATETIME
+)
+""")
+
+conexion.commit()
 
 # =========================
 # VARIABLES
@@ -14,45 +40,11 @@ peticiones = 0
 errores = 0
 
 # =========================
-# CONEXION MYSQL
-# =========================
-
-conexion = mysql.connector.connect(
-    host=os.getenv("MYSQL_HOST"),
-    user=os.getenv("MYSQL_USER"),
-    password=os.getenv("MYSQL_PASSWORD"),
-    database=os.getenv("MYSQL_DATABASE")
-)
-
-cursor = conexion.cursor(dictionary=True)
-
-# =========================
-# CREAR TABLA
-# =========================
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS historial (
-
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    evento TEXT,
-    fecha DATETIME
-
-)
-""")
-
-conexion.commit()
-
-# =========================
 # HEALTH CHECK
 # =========================
 
 @app.route("/health")
 def health():
-
-    print(
-        "[HEALTH] Servicio historial activo",
-        flush=True
-    )
 
     return {
         "status": "ok",
@@ -60,64 +52,28 @@ def health():
     }
 
 # =========================
-# METRICAS
-# =========================
-
-@app.route("/metricas")
-def metricas():
-
-    cursor.execute("SELECT COUNT(*) AS total FROM historial")
-
-    total = cursor.fetchone()["total"]
-
-    return {
-        "peticiones": peticiones,
-        "errores": errores,
-        "eventos_registrados": total
-    }
-
-# =========================
-# REGISTRAR EVENTO
+# GUARDAR EVENTO
 # =========================
 
 @app.route("/guardar_evento", methods=["POST"])
 def guardar_evento():
 
     global peticiones
-    global errores
 
     peticiones += 1
-
-    inicio = time.time()
 
     try:
 
         data = request.json
 
-        # =========================
-        # VALIDAR BODY
-        # =========================
-
-        if not data or "evento" not in data:
-
-            errores += 1
-
-            return jsonify({
-                "error": "Evento requerido"
-            }), 400
-
-        evento = str(data["evento"])
+        evento = data["evento"]
 
         fecha = datetime.now()
 
-        # =========================
-        # GUARDAR EN MYSQL
-        # =========================
-
         cursor.execute("""
-        INSERT INTO historial
-        (evento, fecha)
-        VALUES (%s, %s)
+            INSERT INTO historial
+            (evento, fecha)
+            VALUES (%s, %s)
         """, (
             evento,
             fecha
@@ -130,29 +86,11 @@ def guardar_evento():
             flush=True
         )
 
-        fin = time.time()
-
-        print(
-            f"[MONITOREO] Tiempo respuesta historial: {fin - inicio:.2f}",
-            flush=True
-        )
-
         return jsonify({
-            "mensaje": "Evento registrado",
-            "evento": {
-                "evento": evento,
-                "fecha": fecha.strftime("%Y-%m-%d %H:%M:%S")
-            }
+            "mensaje": "Evento registrado"
         })
 
     except Exception as e:
-
-        errores += 1
-
-        print(
-            f"[ERROR HISTORIAL] {e}",
-            flush=True
-        )
 
         return jsonify({
             "error": str(e)
@@ -165,21 +103,25 @@ def guardar_evento():
 @app.route("/listar_historial")
 def listar_historial():
 
-    print(
-        "[HISTORIAL] Consultando historial",
-        flush=True
-    )
+    cursor.execute("SELECT * FROM historial")
 
-    cursor.execute("""
-    SELECT * FROM historial
-    ORDER BY id DESC
-    """)
+    resultados = cursor.fetchall()
 
-    historial = cursor.fetchall()
+    historial = []
+
+    for evento in resultados:
+
+        historial.append({
+            "id": evento[0],
+            "evento": evento[1],
+            "fecha": evento[2]
+        })
 
     return jsonify({
         "historial": historial
     })
+
+# =========================
 
 if __name__ == "__main__":
 
