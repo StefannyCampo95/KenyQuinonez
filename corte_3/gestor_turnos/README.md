@@ -16,12 +16,12 @@ El proyecto fue desarrollado utilizando Python, Flask, Docker y Docker Compose.
 
 En muchos bancos la asignación de turnos se realiza manualmente o mediante sistemas centralizados que generan:
 
-- duplicidad de turnos
-- falta de trazabilidad
-- poca tolerancia a fallos
-- problemas de escalabilidad
-- lentitud en atención
-- ausencia de monitoreo
+- Duplicidad de turnos
+- Falta de trazabilidad
+- Poca tolerancia a fallos
+- Problemas de escalabilidad
+- Lentitud en atención
+- Ausencia de monitoreo
 
 El sistema distribuido implementado resuelve estos problemas mediante separación de responsabilidades y comunicación entre servicios.
 
@@ -499,3 +499,7 @@ docker ps
 - El proyecto permitió aplicar conceptos fundamentales de sistemas distribuidos mediante una implementación funcional basada en microservicios.
 - Se logró construir una arquitectura desacoplada con tolerancia a fallos, monitoreo y comunicación distribuida.
 - La implementación demostró cómo Docker y Flask permiten desarrollar sistemas escalables y resilientes de forma organizada.
+
+# REPOSITORIO GITHUB
+
+https://github.com/StefannyCampo95/KenyQuinonez.git

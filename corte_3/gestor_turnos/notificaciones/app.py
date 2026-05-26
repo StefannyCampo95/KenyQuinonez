@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify # type: ignore
 import time
 import random
 from datetime import datetime
+import mysql.connector # type: ignore
 
 app = Flask(__name__)
 
@@ -103,25 +104,7 @@ def notificacion():
                 "error": "El telefono debe tener 10 digitos"
             }), 400
 
-        # =========================
-        # FALLO SIMULADO
-        # =========================
-
-        numero = random.randint(1, 5)
-
-        if numero == 3:
-
-            errores += 1
-
-            print(
-                "[ERROR] Fallo simulado en notificaciones",
-                flush=True
-            )
-
-            return jsonify({
-                "error": "Fallo simulado"
-            }), 500
-
+       
         # =========================
         # GUARDAR NOTIFICACION
         # =========================

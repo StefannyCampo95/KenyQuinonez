@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify # type: ignore
 import requests # type: ignore
 import time
 from datetime import datetime
+import mysql.connector # type: ignore
 
 app = Flask(__name__)
 
@@ -191,7 +192,7 @@ def crear_turno():
         try:
 
             response = requests.post(
-                "http://notificaciones:5003/notificacion",
+                "http://notificaciones:5000/notificacion",
                 json={
                     "telefono": telefono,
                     "mensaje": f"Su turno es {turno['turno']}"
@@ -248,7 +249,7 @@ def crear_turno():
         try:
 
             requests.post(
-                "http://historial:5004/guardar_evento",
+                "http://historial:5000/guardar_evento",
                 json={
                     "evento": f"Turno generado {turno['turno']}"
                 }

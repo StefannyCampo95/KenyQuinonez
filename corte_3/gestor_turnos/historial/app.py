@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify # type: ignore
 import time
 from datetime import datetime
+import mysql.connector # type: ignore
 
 app = Flask(__name__)
 
