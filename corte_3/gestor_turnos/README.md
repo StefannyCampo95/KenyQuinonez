@@ -503,3 +503,8 @@ docker ps
 # REPOSITORIO GITHUB
 
 https://github.com/StefannyCampo95/KenyQuinonez.git
+
+
+# DOCUMENTO TÉCNICO
+
+https://www.notion.so/Proyecto-Final-36c76c82496e80f1af07f5e4b3c34940?source=copy_link
