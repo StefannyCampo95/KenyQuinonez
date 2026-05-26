@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify # type: ignore
 import time
 from datetime import datetime
 import mysql.connector # type: ignore
+import os
 
 app = Flask(__name__)
 
@@ -9,9 +10,37 @@ app = Flask(__name__)
 # VARIABLES
 # =========================
 
-historial = []
 peticiones = 0
 errores = 0
+
+# =========================
+# CONEXION MYSQL
+# =========================
+
+conexion = mysql.connector.connect(
+    host=os.getenv("MYSQL_HOST"),
+    user=os.getenv("MYSQL_USER"),
+    password=os.getenv("MYSQL_PASSWORD"),
+    database=os.getenv("MYSQL_DATABASE")
+)
+
+cursor = conexion.cursor(dictionary=True)
+
+# =========================
+# CREAR TABLA
+# =========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS historial (
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    evento TEXT,
+    fecha DATETIME
+
+)
+""")
+
+conexion.commit()
 
 # =========================
 # HEALTH CHECK
@@ -37,10 +66,14 @@ def health():
 @app.route("/metricas")
 def metricas():
 
+    cursor.execute("SELECT COUNT(*) AS total FROM historial")
+
+    total = cursor.fetchone()["total"]
+
     return {
         "peticiones": peticiones,
         "errores": errores,
-        "eventos_registrados": len(historial)
+        "eventos_registrados": total
     }
 
 # =========================
@@ -73,19 +106,27 @@ def guardar_evento():
                 "error": "Evento requerido"
             }), 400
 
+        evento = str(data["evento"])
+
+        fecha = datetime.now()
+
         # =========================
-        # CREAR EVENTO
+        # GUARDAR EN MYSQL
         # =========================
 
-        evento = {
-            "evento": data["evento"],
-            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+        cursor.execute("""
+        INSERT INTO historial
+        (evento, fecha)
+        VALUES (%s, %s)
+        """, (
+            evento,
+            fecha
+        ))
 
-        historial.append(evento)
+        conexion.commit()
 
         print(
-            f"[HISTORIAL] Evento registrado",
+            "[HISTORIAL] Evento registrado",
             flush=True
         )
 
@@ -98,7 +139,10 @@ def guardar_evento():
 
         return jsonify({
             "mensaje": "Evento registrado",
-            "evento": evento
+            "evento": {
+                "evento": evento,
+                "fecha": fecha.strftime("%Y-%m-%d %H:%M:%S")
+            }
         })
 
     except Exception as e:
@@ -126,11 +170,16 @@ def listar_historial():
         flush=True
     )
 
+    cursor.execute("""
+    SELECT * FROM historial
+    ORDER BY id DESC
+    """)
+
+    historial = cursor.fetchall()
+
     return jsonify({
         "historial": historial
     })
-
-# =========================
 
 if __name__ == "__main__":
 

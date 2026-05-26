@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify # type: ignore
 import time
-import random
 from datetime import datetime
 import mysql.connector # type: ignore
+import os
 
 app = Flask(__name__)
 
@@ -10,9 +10,47 @@ app = Flask(__name__)
 # VARIABLES
 # =========================
 
-notificaciones = []
 peticiones = 0
 errores = 0
+
+# =========================
+# CONEXION MYSQL
+# =========================
+
+conexion = mysql.connector.connect(
+    host=os.getenv("MYSQL_HOST"),
+    user=os.getenv("MYSQL_USER"),
+    password=os.getenv("MYSQL_PASSWORD"),
+    database=os.getenv("MYSQL_DATABASE")
+)
+
+cursor = conexion.cursor(dictionary=True)
+
+# =========================
+# CREAR TABLA
+# =========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS notificaciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    telefono VARCHAR(20),
+    mensaje TEXT,
+    fecha VARCHAR(50)
+)
+""")
+
+conexion.commit()
+
+# =========================
+# HOME
+# =========================
+
+@app.route("/")
+def home():
+
+    return {
+        "mensaje": "Servicio notificaciones funcionando"
+    }
 
 # =========================
 # HEALTH CHECK
@@ -38,10 +76,16 @@ def health():
 @app.route("/metricas")
 def metricas():
 
+    cursor.execute(
+        "SELECT COUNT(*) AS total FROM notificaciones"
+    )
+
+    total = cursor.fetchone()
+
     return {
         "peticiones": peticiones,
         "errores": errores,
-        "notificaciones_enviadas": len(notificaciones)
+        "notificaciones_enviadas": total["total"]
     }
 
 # =========================
@@ -79,6 +123,7 @@ def notificacion():
             }), 400
 
         telefono = str(data["telefono"])
+        mensaje = str(data["mensaje"])
 
         # =========================
         # VALIDAR TELEFONO
@@ -104,18 +149,32 @@ def notificacion():
                 "error": "El telefono debe tener 10 digitos"
             }), 400
 
-       
         # =========================
-        # GUARDAR NOTIFICACION
+        # FECHA
         # =========================
 
-        nueva_notificacion = {
-            "telefono": telefono,
-            "mensaje": data["mensaje"],
-            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+        fecha = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
 
-        notificaciones.append(nueva_notificacion)
+        # =========================
+        # INSERTAR NOTIFICACION
+        # =========================
+
+        cursor.execute("""
+        INSERT INTO notificaciones (
+            telefono,
+            mensaje,
+            fecha
+        )
+        VALUES (%s, %s, %s)
+        """, (
+            telefono,
+            mensaje,
+            fecha
+        ))
+
+        conexion.commit()
 
         print(
             f"[NOTIFICACION] SMS enviado a {telefono}",
@@ -131,7 +190,11 @@ def notificacion():
 
         return jsonify({
             "mensaje": "Notificacion enviada",
-            "notificacion": nueva_notificacion
+            "notificacion": {
+                "telefono": telefono,
+                "mensaje": mensaje,
+                "fecha": fecha
+            }
         })
 
     except Exception as e:
@@ -154,16 +217,25 @@ def notificacion():
 @app.route("/listar_notificaciones")
 def listar_notificaciones():
 
+    global peticiones
+
+    peticiones += 1
+
     print(
         "[NOTIFICACIONES] Consultando notificaciones",
         flush=True
     )
 
+    cursor.execute(
+        "SELECT * FROM notificaciones"
+    )
+
+    notificaciones = cursor.fetchall()
+
     return jsonify({
         "notificaciones": notificaciones
     })
 
-# =========================
 
 if __name__ == "__main__":
 

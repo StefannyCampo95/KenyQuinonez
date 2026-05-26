@@ -3,6 +3,7 @@ import requests # type: ignore
 import time
 from datetime import datetime
 import mysql.connector # type: ignore
+import os
 
 app = Flask(__name__)
 
@@ -10,8 +11,6 @@ app = Flask(__name__)
 # VARIABLES
 # =========================
 
-turnos = []
-contador = 1
 peticiones = 0
 errores = 0
 
@@ -21,6 +20,47 @@ errores = 0
 
 fallos_notificaciones = 0
 circuit_breaker = "CLOSED"
+
+# =========================
+# CONEXION MYSQL
+# =========================
+
+conexion = mysql.connector.connect(
+    host=os.getenv("MYSQL_HOST"),
+    user=os.getenv("MYSQL_USER"),
+    password=os.getenv("MYSQL_PASSWORD"),
+    database=os.getenv("MYSQL_DATABASE")
+)
+
+cursor = conexion.cursor(dictionary=True)
+
+# =========================
+# CREAR TABLA
+# =========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS turnos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    identificacion VARCHAR(50),
+    telefono VARCHAR(20),
+    turno VARCHAR(20),
+    estado VARCHAR(20),
+    fecha VARCHAR(50)
+)
+""")
+
+conexion.commit()
+
+# =========================
+# HOME
+# =========================
+
+@app.route("/")
+def home():
+
+    return {
+        "mensaje": "Servicio turnos funcionando"
+    }
 
 # =========================
 # HEALTH CHECK
@@ -47,10 +87,14 @@ def health():
 @app.route("/metricas")
 def metricas():
 
+    cursor.execute("SELECT COUNT(*) AS total FROM turnos")
+
+    total = cursor.fetchone()
+
     return {
         "peticiones": peticiones,
         "errores": errores,
-        "turnos_generados": len(turnos),
+        "turnos_generados": total["total"],
         "estado_circuit_breaker": circuit_breaker
     }
 
@@ -61,7 +105,6 @@ def metricas():
 @app.route("/turno", methods=["POST"])
 def crear_turno():
 
-    global contador
     global peticiones
     global errores
     global fallos_notificaciones
@@ -130,38 +173,67 @@ def crear_turno():
         # VALIDAR DUPLICADOS
         # =========================
 
-        for turno in turnos:
+        cursor.execute("""
+        SELECT * FROM turnos
+        WHERE identificacion = %s
+        AND estado = 'pendiente'
+        """, (identificacion,))
 
-            if (
-                turno["identificacion"] == identificacion
-                and turno["estado"] == "pendiente"
-            ):
+        turno_existente = cursor.fetchone()
 
-                errores += 1
+        if turno_existente:
 
-                return jsonify({
-                    "error": "El usuario ya tiene un turno pendiente"
-                }), 400
+            errores += 1
+
+            return jsonify({
+                "error": "El usuario ya tiene un turno pendiente"
+            }), 400
 
         # =========================
-        # CREAR TURNO
+        # GENERAR NUMERO TURNO
         # =========================
 
-        turno = {
-            "id": contador,
-            "identificacion": identificacion,
-            "telefono": telefono,
-            "turno": "T" + str(contador),
-            "estado": "pendiente",
-            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+        cursor.execute(
+            "SELECT COUNT(*) AS total FROM turnos"
+        )
 
-        contador += 1
+        total_turnos = cursor.fetchone()
 
-        turnos.append(turno)
+        numero_turno = total_turnos["total"] + 1
+
+        codigo_turno = "T" + str(numero_turno)
+
+        fecha = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+        # =========================
+        # INSERTAR TURNO
+        # =========================
+
+        cursor.execute("""
+        INSERT INTO turnos (
+            identificacion,
+            telefono,
+            turno,
+            estado,
+            fecha
+        )
+        VALUES (%s, %s, %s, %s, %s)
+        """, (
+            identificacion,
+            telefono,
+            codigo_turno,
+            "pendiente",
+            fecha
+        ))
+
+        conexion.commit()
+
+        turno_id = cursor.lastrowid
 
         print(
-            f"[TURNOS] Turno generado: {turno['turno']}",
+            f"[TURNOS] Turno generado: {codigo_turno}",
             flush=True
         )
 
@@ -195,7 +267,7 @@ def crear_turno():
                 "http://notificaciones:5000/notificacion",
                 json={
                     "telefono": telefono,
-                    "mensaje": f"Su turno es {turno['turno']}"
+                    "mensaje": f"Su turno es {codigo_turno}"
                 },
                 timeout=3
             )
@@ -251,8 +323,9 @@ def crear_turno():
             requests.post(
                 "http://historial:5000/guardar_evento",
                 json={
-                    "evento": f"Turno generado {turno['turno']}"
-                }
+                    "evento": f"Turno generado {codigo_turno}"
+                },
+                timeout=3
             )
 
             print(
@@ -278,7 +351,14 @@ def crear_turno():
             flush=True
         )
 
-        return jsonify(turno)
+        return jsonify({
+            "id": turno_id,
+            "identificacion": identificacion,
+            "telefono": telefono,
+            "turno": codigo_turno,
+            "estado": "pendiente",
+            "fecha": fecha
+        })
 
     except Exception as e:
 
@@ -294,39 +374,57 @@ def crear_turno():
         }), 500
 
 # =========================
-# CAMBIAR ESTADO
+# ACTUALIZAR ESTADO
 # =========================
 
 @app.route("/actualizar_turno/<int:id>", methods=["PUT"])
 def actualizar_turno(id):
 
-    data = request.json
+    try:
 
-    if not data or "estado" not in data:
+        data = request.json
 
-        return jsonify({
-            "error": "Estado requerido"
-        }), 400
-
-    for turno in turnos:
-
-        if turno["id"] == id:
-
-            turno["estado"] = data["estado"]
-
-            print(
-                f"[TURNOS] Estado actualizado: {turno['estado']}",
-                flush=True
-            )
+        if not data or "estado" not in data:
 
             return jsonify({
-                "mensaje": "Estado actualizado",
-                "turno": turno
-            })
+                "error": "Estado requerido"
+            }), 400
 
-    return jsonify({
-        "error": "Turno no encontrado"
-    }), 404
+        estado = data["estado"]
+
+        cursor.execute("""
+        UPDATE turnos
+        SET estado = %s
+        WHERE id = %s
+        """, (estado, id))
+
+        conexion.commit()
+
+        if cursor.rowcount == 0:
+
+            return jsonify({
+                "error": "Turno no encontrado"
+            }), 404
+
+        print(
+            f"[TURNOS] Estado actualizado: {estado}",
+            flush=True
+        )
+
+        return jsonify({
+            "mensaje": "Estado actualizado"
+        })
+
+    except Exception as e:
+
+        print(
+            f"[ERROR TURNOS] {e}",
+            flush=True
+        )
+
+        return jsonify({
+            "error": str(e)
+        }), 500
 
 # =========================
 # LISTAR TURNOS
@@ -335,17 +433,23 @@ def actualizar_turno(id):
 @app.route("/listar_turnos")
 def listar_turnos():
 
+    global peticiones
+
+    peticiones += 1
+
     print(
         "[TURNOS] Consultando turnos",
         flush=True
     )
 
+    cursor.execute("SELECT * FROM turnos")
+
+    turnos = cursor.fetchall()
+
     return jsonify({
-        "mensaje": "Servicio turnos funcionando",
         "turnos": turnos
     })
 
-# =========================
 
 if __name__ == "__main__":
 

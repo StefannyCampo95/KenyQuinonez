@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify # type: ignore
 import time
 from datetime import datetime
+import mysql.connector # type: ignore
+import os
 
 app = Flask(__name__)
 
@@ -8,9 +10,48 @@ app = Flask(__name__)
 # VARIABLES
 # =========================
 
-usuarios = []
 peticiones = 0
 errores = 0
+
+# =========================
+# CONEXION MYSQL
+# =========================
+
+conexion = mysql.connector.connect(
+    host=os.getenv("MYSQL_HOST"),
+    user=os.getenv("MYSQL_USER"),
+    password=os.getenv("MYSQL_PASSWORD"),
+    database=os.getenv("MYSQL_DATABASE")
+)
+
+cursor = conexion.cursor(dictionary=True)
+
+# =========================
+# CREAR TABLA
+# =========================
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    identificacion VARCHAR(50) UNIQUE,
+    telefono VARCHAR(20),
+    fecha_registro VARCHAR(50)
+)
+""")
+
+conexion.commit()
+
+# =========================
+# HOME
+# =========================
+
+@app.route("/")
+def home():
+
+    return {
+        "mensaje": "Servicio usuarios funcionando"
+    }
 
 # =========================
 # HEALTH CHECK
@@ -36,10 +77,14 @@ def health():
 @app.route("/metricas")
 def metricas():
 
+    cursor.execute("SELECT COUNT(*) AS total FROM usuarios")
+
+    total = cursor.fetchone()
+
     return {
         "peticiones": peticiones,
         "errores": errores,
-        "usuarios_registrados": len(usuarios)
+        "usuarios_registrados": total["total"]
     }
 
 # =========================
@@ -129,28 +174,49 @@ def crear_usuario():
         # VALIDAR DUPLICADOS
         # =========================
 
-        for usuario in usuarios:
+        cursor.execute(
+            "SELECT * FROM usuarios WHERE identificacion = %s",
+            (identificacion,)
+        )
 
-            if usuario["identificacion"] == identificacion:
+        usuario_existente = cursor.fetchone()
 
-                errores += 1
+        if usuario_existente:
 
-                return jsonify({
-                    "error": "Usuario ya registrado"
-                }), 400
+            errores += 1
+
+            return jsonify({
+                "error": "Usuario ya registrado"
+            }), 400
 
         # =========================
-        # CREAR USUARIO
+        # FECHA
         # =========================
 
-        nuevo_usuario = {
-            "nombre": nombre,
-            "identificacion": identificacion,
-            "telefono": telefono,
-            "fecha_registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+        fecha_registro = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
 
-        usuarios.append(nuevo_usuario)
+        # =========================
+        # INSERTAR USUARIO
+        # =========================
+
+        cursor.execute("""
+        INSERT INTO usuarios (
+            nombre,
+            identificacion,
+            telefono,
+            fecha_registro
+        )
+        VALUES (%s, %s, %s, %s)
+        """, (
+            nombre,
+            identificacion,
+            telefono,
+            fecha_registro
+        ))
+
+        conexion.commit()
 
         print(
             f"[USUARIOS] Usuario registrado: {identificacion}",
@@ -164,7 +230,12 @@ def crear_usuario():
             flush=True
         )
 
-        return jsonify(nuevo_usuario)
+        return jsonify({
+            "nombre": nombre,
+            "identificacion": identificacion,
+            "telefono": telefono,
+            "fecha_registro": fecha_registro
+        })
 
     except Exception as e:
 
@@ -195,11 +266,16 @@ def obtener_usuario(identificacion):
         flush=True
     )
 
-    for usuario in usuarios:
+    cursor.execute(
+        "SELECT * FROM usuarios WHERE identificacion = %s",
+        (identificacion,)
+    )
 
-        if usuario["identificacion"] == identificacion:
+    usuario = cursor.fetchone()
 
-            return jsonify(usuario)
+    if usuario:
+
+        return jsonify(usuario)
 
     return jsonify({
         "error": "Usuario no encontrado"
@@ -221,11 +297,14 @@ def listar_usuarios():
         flush=True
     )
 
+    cursor.execute("SELECT * FROM usuarios")
+
+    usuarios = cursor.fetchall()
+
     return jsonify({
         "usuarios": usuarios
     })
 
-# =========================
 
 if __name__ == "__main__":
 
