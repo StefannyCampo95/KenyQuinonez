@@ -1,8 +1,8 @@
 import os
-from flask import Flask, request, jsonify # type: ignore
+from flask import Flask, request, jsonify  # type: ignore
 import time
 from datetime import datetime
-import mysql.connector # type: ignore
+import mysql.connector  # type: ignore
 
 app = Flask(__name__)
 
@@ -47,54 +47,102 @@ errores = 0
 
 @app.route("/health")
 def health():
-
     return {
         "status": "ok",
         "service": "notificaciones"
     }
 
 # =========================
-# ENVIAR NOTIFICACION
+# METRICAS
+# =========================
+
+@app.route("/metricas")
+def metricas():
+    conexion = get_connection()
+    cursor = conexion.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM notificaciones")
+    total = cursor.fetchone()[0]
+
+    cursor.close()
+    conexion.close()
+
+    return {
+        "peticiones": peticiones,
+        "errores": errores,
+        "notificaciones_enviadas": total
+    }
+
+# =========================
+# REGISTRAR NOTIFICACION (SIN TWILIO)
 # =========================
 
 @app.route("/notificacion", methods=["POST"])
 def notificacion():
-
-    global peticiones
+    global peticiones, errores
 
     peticiones += 1
+    inicio = time.time()
 
     try:
-
         data = request.json
+
+        # -------------------------
+        # VALIDACION BODY
+        # -------------------------
+        if not data or "telefono" not in data or "mensaje" not in data:
+            errores += 1
+            return jsonify({
+                "error": "telefono y mensaje son obligatorios"
+            }), 400
 
         telefono = str(data["telefono"])
         mensaje = str(data["mensaje"])
 
+        # -------------------------
+        # VALIDACION TELEFONO
+        # -------------------------
+        if not telefono.isdigit():
+            errores += 1
+            return jsonify({
+                "error": "El telefono solo debe contener numeros"
+            }), 400
+
+        if len(telefono) != 10:
+            errores += 1
+            return jsonify({
+                "error": "El telefono debe tener 10 digitos"
+            }), 400
+
         fecha = datetime.now()
 
+        # -------------------------
+        # GUARDAR EN MYSQL
+        # -------------------------
+        conexion = get_connection()
+        cursor = conexion.cursor()
+
         cursor.execute("""
-            INSERT INTO notificaciones
-            (telefono, mensaje, fecha)
+            INSERT INTO notificaciones (telefono, mensaje, fecha)
             VALUES (%s, %s, %s)
-        """, (
-            telefono,
-            mensaje,
-            fecha
-        ))
+        """, (telefono, mensaje, fecha))
 
         conexion.commit()
+        cursor.close()
+        conexion.close()
 
-        print(
-            f"[NOTIFICACION] SMS enviado a {telefono}",
-            flush=True
-        )
+        fin = time.time()
+
+        print(f"[NOTIFICACION] Registrada para {telefono}", flush=True)
+        print(f"[TIEMPO] {fin - inicio:.2f}s", flush=True)
 
         return jsonify({
-            "mensaje": "Notificacion enviada"
+            "mensaje": "Notificacion registrada (sin envio SMS)"
         })
 
     except Exception as e:
+        errores += 1
+        print(f"[ERROR NOTIFICACIONES] {e}", flush=True)
 
         return jsonify({
             "error": str(e)
@@ -106,27 +154,35 @@ def notificacion():
 
 @app.route("/listar_notificaciones")
 def listar_notificaciones():
+    conexion = get_connection()
+    cursor = conexion.cursor()
 
-    cursor.execute("SELECT * FROM notificaciones")
+    cursor.execute("""
+        SELECT id, telefono, mensaje, fecha
+        FROM notificaciones
+        ORDER BY id DESC
+    """)
 
     resultados = cursor.fetchall()
 
-    notificaciones = []
-
-    for notificacion in resultados:
-
-        notificaciones.append({
-            "id": notificacion[0],
-            "telefono": notificacion[1],
-            "mensaje": notificacion[2]
-        })
+    cursor.close()
+    conexion.close()
 
     return jsonify({
-        "notificaciones": notificaciones
+        "notificaciones": [
+            {
+                "id": r[0],
+                "telefono": r[1],
+                "mensaje": r[2],
+                "fecha": str(r[3])
+            }
+            for r in resultados
+        ]
     })
 
 # =========================
+# MAIN
+# =========================
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5000, debug=True)
