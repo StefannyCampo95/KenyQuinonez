@@ -41,7 +41,6 @@ conexion.commit()
 # VARIABLES
 # =========================
 
-contador = 1
 peticiones = 0
 errores = 0
 
@@ -78,10 +77,9 @@ def metricas():
 # CREAR TURNO
 # =========================
 
-@app.route("/turno", methods=["POST"])
+@app.route("/crear_turno", methods=["POST"])
 def crear_turno():
-
-    global contador
+    
     global peticiones
     global errores
     global fallos_notificaciones
@@ -130,8 +128,7 @@ def crear_turno():
                 "error": "Usuario ya tiene turno pendiente"
             }), 400
 
-        turno_generado = "T" + str(contador)
-
+    
         fecha = datetime.now()
 
         cursor.execute("""
@@ -141,14 +138,31 @@ def crear_turno():
         """, (
             identificacion,
             telefono,
-            turno_generado,
+            "",
             "pendiente",
             fecha
         ))
 
         conexion.commit()
 
-        contador += 1
+            # Obtener ID autogenerado
+        id_turno = cursor.lastrowid
+
+        # Crear consecutivo del turno
+        turno_generado = f"T{id_turno}"
+
+        # Actualizar registro con el turno generado
+        cursor.execute("""
+            UPDATE turnos
+            SET turno = %s
+            WHERE id = %s
+        """, (
+            turno_generado,
+            id_turno
+        ))
+
+        conexion.commit()
+
 
         print(
             f"[TURNOS] Turno generado: {turno_generado}",

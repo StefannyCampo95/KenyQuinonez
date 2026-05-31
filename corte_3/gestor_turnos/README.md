@@ -34,6 +34,8 @@ El sistema permite:
 - Registrar usuarios
 - Generar turnos
 - Validar duplicidad de turnos
+- Validar que en el campo del nombre solo sean letras
+- Validar que en el campo de teléfono sólo sean números y máximo 10 caracteres
 - Validar información del usuario
 - Enviar notificaciones
 - Registrar historial de eventos
@@ -76,19 +78,19 @@ Actualmente el sistema implementa:
 
 ## Microservicios implementados
 
-| Servicio | Puerto | Responsabilidad |
-| --- | --- | --- |
-| Gateway | 5000 | Punto de entrada principal |
-| Usuarios | 5001 | Gestión de usuarios |
-| Turnos | 5002 | Gestión de turnos |
-| Notificaciones | 5003 | Simulación de envío SMS |
-| Historial | 5004 | Registro de eventos |
-| MySQL | 3306 | Base de datos |
+| Servicio       | Puerto | Responsabilidad            |
+| --------       | ------ | ---------------            |
+| Gateway        | 5000   | Punto de entrada principal |
+| Usuarios       | 5001   | Gestión de usuarios        |
+| Turnos         | 5002   | Gestión de turnos          |
+| Notificaciones | 5003   | Simulación de envío SMS    |
+| Historial      | 5004   | Registro de eventos        |
+| MySQL          | 3306   | Base de datos              |
 
 ---
 
 ## Arquitectura general
-
+![diagrama](EVIDENCIAS/Gestor_Turnos_Diagrama.png)
 ---
 
 ## Comunicación entre servicios
@@ -329,7 +331,7 @@ Ejemplo:
 
 ```
 MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=app_banco
+MYSQL_DATABASE=app_db
 MYSQL_USER=root
 MYSQL_PASSWORD=123456
 ```
@@ -352,14 +354,14 @@ sin credenciales reales.
 
 ## Tecnologías utilizadas
 
-| Tecnología | Uso |
-| --- | --- |
-| Python | Lenguaje principal |
-| Flask | Microservicios |
-| Docker | Contenerización |
-| Docker Compose | Orquestación |
-| MySQL | Base de datos |
-| Requests | Comunicación HTTP |
+| Tecnología     | Uso                |
+| ---            | ---                |
+| Python         | Lenguaje principal |
+| Flask          | Microservicios     |
+| Docker         | Contenerización    |
+| Docker Compose | Orquestación       |
+| MySQL          | Base de datos      |
+| Requests       | Comunicación HTTP  |
 
 ---
 
@@ -373,14 +375,15 @@ sin credenciales reales.
 /turnos
 /notificaciones
 /historial
-/docs
 /evidencias
 
 .env
 .env.example
 
 docker-compose.yml
+
 ```
+![estructura](EVIDENCIAS/Estructura_proyecto.png)
 
 ---
 
@@ -400,78 +403,69 @@ El sistema utiliza Docker Compose para:
 
 ## Gateway
 
-| Método | Endpoint |
-| --- | --- |
-| GET | /health |
-| GET | /metricas |
-| POST | /crear_usuario |
-| GET | /listar_usuarios |
-| POST | /turno |
-| GET | /listar_turnos |
-| GET | /historial |
+| Método | Endpoint         |
+| ---    | ---              |
+| GET    | /health          |
+| GET    | /metricas        |
+| POST   | /crear_usuario   |
+| GET    | /listar_usuarios |
+| POST   | /crear_turno     | 
+| GET    | /listar_turnos   |
+| GET    | /historial       |
 
 ---
 
 ## Usuarios
 
-| Método | Endpoint |
-| --- | --- |
-| POST | /crear_usuario |
-| GET | /listar_usuarios |
-| GET | /usuario/ |
-| GET | /health |
-| GET | /metricas |
+| Método | Endpoint           |
+| ---    | ---                |
+| POST   | /crear_usuario     |
+| GET    | /listar_usuarios   |
+| GET    | /usuario/          |
+| GET    | /health            |
+| GET    | /metricas          |
 
 ---
 
 ## Turnos
 
-| Método | Endpoint |
-| --- | --- |
-| POST | /turno |
-| GET | /listar_turnos |
-| PUT | /actualizar_turno/ |
-| GET | /health |
-| GET | /metricas |
+| Método | Endpoint       |
+| ---    | ---            |
+| POST   | /crear_turno   |
+| GET    | /listar_turnos |
+| GET    | /health        |
+| GET    | /metricas      |
 
 ---
 
 ## Notificaciones
 
-| Método | Endpoint |
-| --- | --- |
-| POST | /notificacion |
-| GET | /listar_notificaciones |
-| GET | /health |
-| GET | /metricas |
+| Método | Endpoint               |
+| ---    | ---                    |
+| POST   | /notificacion          |
+| GET    | /listar_notificaciones |
+| GET    | /health                |
+| GET    | /metricas              |
 
 ---
 
 ## Historial
 
-| Método | Endpoint |
-| --- | --- |
-| POST | /guardar_evento |
-| GET | /listar_historial |
-| GET | /health |
-| GET | /metricas |
+| Método | Endpoint          |
+| ---    | ---               |
+| POST   | /guardar_evento   |
+| GET    | /listar_historial |
+| GET    | /health           |
+| GET    | /metricas         |
 
 ---
 
 # 9. COMANDOS IMPORTANTES
 
-## Construir contenedores
+## Construir contenedores y levantar servicios
 
 ```bash
-docker compose build
-```
-
----
-
-## Levantar sistema
-
-```bash
-docker compose up
+docker compose up --build
 ```
 
 ---
@@ -481,7 +475,7 @@ docker compose up
 ---
 
 ```bash
-docker compose logs
+docker compose logs -f
 ```
 
 ---
@@ -507,4 +501,48 @@ https://github.com/StefannyCampo95/KenyQuinonez.git
 
 # DOCUMENTO TÉCNICO
 
-https://www.notion.so/Proyecto-Final-36c76c82496e80f1af07f5e4b3c34940?source=copy_link
+https://www.notion.so/Proyecto-Final-36c76c82496e80f1af07f5e4b3c34940?source=
+
+
+# EVIDENCIAS DEL FUNCIONAMIENTO DEL SISTEMA CON POSTMAN
+
+1. Crear Usuario
+
+![usuario](EVIDENCIAS/crear_usuario.png)
+![listar](EVIDENCIAS/Listar_usuarios.png)
+
+
+2. Crear Turno
+
+![turno](EVIDENCIAS/Creacion_turno.png)
+![listar](EVIDENCIAS/Listar_turno.png)
+
+3. Notificación
+
+![notificacion](EVIDENCIAS/Listar_notificaciones.png)
+
+4. Historial 
+
+![historial](EVIDENCIAS/Historial_turnocreado.png)
+
+# PRUEBAS
+
+- Error de duplicado de usuario
+
+![duplicado](EVIDENCIAS/Error_duplicado_usuario.png)
+![letras_i](EVIDENCIAS/Error_letras_identificacion.png)
+![letras_t](EVIDENCIAS/Error_letras_telefono.png)
+
+- Simulación de servicios detenidos
+
+Usuarios
+![error](EVIDENCIAS/Servicio_Usuarios_caído.png)
+
+Turnos
+![error](EVIDENCIAS/Servicio_Turnos_caído.png)
+
+Notificaciones
+![error](EVIDENCIAS/Servicio_Notificaciones_caído.png)
+
+Historial
+![error](EVIDENCIAS/Servicio_Historial_caído.png)
