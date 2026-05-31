@@ -412,6 +412,8 @@ El sistema utiliza Docker Compose para:
 | POST   | /crear_turno     | 
 | GET    | /listar_turnos   |
 | GET    | /historial       |
+| POST   | /notificacion    |
+| GET    | /listar_historial|
 
 ---
 
@@ -421,7 +423,6 @@ El sistema utiliza Docker Compose para:
 | ---    | ---                |
 | POST   | /crear_usuario     |
 | GET    | /listar_usuarios   |
-| GET    | /usuario/          |
 | GET    | /health            |
 | GET    | /metricas          |
 
@@ -499,7 +500,7 @@ docker ps
 https://github.com/StefannyCampo95/KenyQuinonez.git
 
 
-# DOCUMENTO TÉCNICO
+# DOCUMENTO TÉCNICOs
 
 https://www.notion.so/Proyecto-Final-36c76c82496e80f1af07f5e4b3c34940?source=
 
