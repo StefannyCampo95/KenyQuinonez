@@ -6,9 +6,7 @@ import os
 
 app = Flask(__name__)
 
-# =========================
-# MYSQL
-# =========================
+
 
 def get_connection():
 
@@ -35,16 +33,16 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 conexion.commit()
 
-# =========================
+
 # VARIABLES
-# =========================
+
 
 peticiones = 0
 errores = 0
 
-# =========================
+
 # HEALTH CHECK
-# =========================
+
 
 @app.route("/health")
 def health():
@@ -54,9 +52,9 @@ def health():
         "service": "usuarios"
     }
 
-# =========================
+
 # METRICAS
-# =========================
+
 
 @app.route("/metricas")
 def metricas():
@@ -66,9 +64,9 @@ def metricas():
         "errores": errores
     }
 
-# =========================
+
 # CREAR USUARIO
-# =========================
+
 
 @app.route("/crear_usuario", methods=["POST"])
 def crear_usuario():
@@ -182,9 +180,9 @@ def crear_usuario():
             "error": str(e)
         }), 500
 
-# =========================
+
 # LISTAR USUARIOS
-# =========================
+
 
 @app.route("/listar_usuarios")
 def listar_usuarios():
@@ -210,5 +208,4 @@ def listar_usuarios():
 
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5000, debug=True)

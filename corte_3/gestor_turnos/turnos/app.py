@@ -7,9 +7,7 @@ import os
 
 app = Flask(__name__)
 
-# =========================
-# MYSQL
-# =========================
+
 
 def get_connection():
 
@@ -37,9 +35,9 @@ CREATE TABLE IF NOT EXISTS turnos (
 
 conexion.commit()
 
-# =========================
+
 # VARIABLES
-# =========================
+
 
 peticiones = 0
 errores = 0
@@ -47,9 +45,9 @@ errores = 0
 fallos_notificaciones = 0
 circuit_breaker = "CLOSED"
 
-# =========================
+
 # HEALTH CHECK
-# =========================
+
 
 @app.route("/health")
 def health():
@@ -60,9 +58,9 @@ def health():
         "circuit_breaker": circuit_breaker
     }
 
-# =========================
+
 # METRICAS
-# =========================
+
 
 @app.route("/metricas")
 def metricas():
@@ -73,9 +71,9 @@ def metricas():
         "estado_circuit_breaker": circuit_breaker
     }
 
-# =========================
+
 # CREAR TURNO
-# =========================
+
 
 @app.route("/crear_turno", methods=["POST"])
 def crear_turno():
@@ -169,9 +167,9 @@ def crear_turno():
             flush=True
         )
 
-        # =========================
+        
         # CIRCUIT BREAKER
-        # =========================
+       
 
         if circuit_breaker == "OPEN":
 
@@ -227,9 +225,9 @@ def crear_turno():
                 flush=True
             )
 
-        # =========================
+        
         # HISTORIAL
-        # =========================
+        
 
         try:
 
@@ -267,9 +265,9 @@ def crear_turno():
             "error": str(e)
         }), 500
 
-# =========================
+
 # LISTAR TURNOS
-# =========================
+
 
 @app.route("/listar_turnos")
 def listar_turnos():
@@ -296,5 +294,4 @@ def listar_turnos():
 
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5000, debug=True)

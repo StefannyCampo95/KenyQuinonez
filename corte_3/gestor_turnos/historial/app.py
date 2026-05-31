@@ -32,16 +32,12 @@ CREATE TABLE IF NOT EXISTS historial (
 
 conexion.commit()
 
-# =========================
-# VARIABLES
-# =========================
+
 
 peticiones = 0
 errores = 0
 
-# =========================
-# HEALTH CHECK
-# =========================
+
 
 @app.route("/health")
 def health():
@@ -51,9 +47,9 @@ def health():
         "service": "historial"
     }
 
-# =========================
+
 # GUARDAR EVENTO
-# =========================
+
 
 @app.route("/guardar_evento", methods=["POST"])
 def guardar_evento():
@@ -96,9 +92,9 @@ def guardar_evento():
             "error": str(e)
         }), 500
 
-# =========================
+
 # LISTAR HISTORIAL
-# =========================
+
 
 @app.route("/listar_historial")
 def listar_historial():
@@ -121,8 +117,7 @@ def listar_historial():
         "historial": historial
     })
 
-# =========================
+
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5000, debug=True)

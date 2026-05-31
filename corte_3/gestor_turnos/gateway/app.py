@@ -4,6 +4,7 @@ import time
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def home():
     return "API FUNCIONANDO"
@@ -16,7 +17,7 @@ peticiones = 0
 errores = 0
 
 
-# CONFIGURACION DEL CIRCUIT BREAKER
+#  CIRCUIT BREAKER
 
 
 LIMITE_FALLOS = 3
@@ -54,9 +55,7 @@ circuitos = {
     }
 }
 
-# =========================
-# FUNCIONES CIRCUIT BREAKER
-# =========================
+
 
 def circuito_disponible(servicio):
 
@@ -131,9 +130,9 @@ def registrar_fallo(servicio):
             flush=True
         )
 
-# =========================
+
 # HEALTH CHECK
-# =========================
+
 
 @app.route("/health")
 def health():
@@ -143,9 +142,9 @@ def health():
         "service": "gateway"
     })
 
-# =========================
+
 # METRICAS
-# =========================
+
 
 @app.route("/metricas")
 def metricas():
@@ -157,9 +156,9 @@ def metricas():
         "circuitos": circuitos
     })
 
-# =========================
+
 # CREAR USUARIO
-# =========================
+
 
 @app.route("/crear_usuario", methods=["POST"])
 def crear_usuario():
@@ -213,9 +212,9 @@ def crear_usuario():
             "error": "Servicio usuarios no disponible"
         }), 500
 
-# =========================
+
 # LISTAR USUARIOS
-# =========================
+
 
 @app.route("/listar_usuarios")
 def listar_usuarios():
@@ -250,9 +249,9 @@ def listar_usuarios():
             "error": "Error obteniendo usuarios"
         }), 500
 
-# =========================
+
 # CREAR TURNO
-# =========================
+
 
 @app.route("/crear_turno", methods=["POST"])
 def crear_turno():
@@ -306,9 +305,9 @@ def crear_turno():
             "error": "Servicio turnos no disponible"
         }), 500
 
-# =========================
+
 # LISTAR TURNOS
-# =========================
+
 
 @app.route("/listar_turnos")
 def listar_turnos():
@@ -373,9 +372,9 @@ def notificacion():
             "error": "Error conectando con notificaciones"
         }), 500
 
-# =========================
+
 # LISTAR NOTIFICACIONES
-# =========================
+
 
 @app.route("/listar_notificaciones")
 def listar_notificaciones():
@@ -410,9 +409,9 @@ def listar_notificaciones():
             "error": "Error obteniendo notificaciones"
         }), 500
 
-# =========================
+
 # HISTORIAL
-# =========================
+
 
 @app.route("/historial")
 def historial():
@@ -447,14 +446,6 @@ def historial():
             "error": "Error obteniendo historial"
         }), 500
 
-# =========================
-# MAIN
-# =========================
 
 if __name__ == "__main__":
-
-    app.run(
-        host="0.0.0.0",
-        port=5000,
-        debug=True
-    )
+    app.run(host="0.0.0.0", port=5000, debug=True)

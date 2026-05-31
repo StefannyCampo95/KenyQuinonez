@@ -6,9 +6,7 @@ import mysql.connector  # type: ignore
 
 app = Flask(__name__)
 
-# =========================
-# MYSQL
-# =========================
+
 
 def get_connection():
 
@@ -34,16 +32,16 @@ CREATE TABLE IF NOT EXISTS notificaciones (
 
 conexion.commit()
 
-# =========================
+
 # VARIABLES
-# =========================
+
 
 peticiones = 0
 errores = 0
 
-# =========================
+
 # HEALTH CHECK
-# =========================
+
 
 @app.route("/health")
 def health():
@@ -52,9 +50,9 @@ def health():
         "service": "notificaciones"
     }
 
-# =========================
+
 # METRICAS
-# =========================
+
 
 @app.route("/metricas")
 def metricas():
@@ -73,9 +71,9 @@ def metricas():
         "notificaciones_enviadas": total
     }
 
-# =========================
-# REGISTRAR NOTIFICACION (SIN TWILIO)
-# =========================
+
+# REGISTRAR NOTIFICACION 
+
 
 @app.route("/notificacion", methods=["POST"])
 def notificacion():
@@ -87,9 +85,9 @@ def notificacion():
     try:
         data = request.json
 
-        # -------------------------
+        
         # VALIDACION BODY
-        # -------------------------
+        
         if not data or "telefono" not in data or "mensaje" not in data:
             errores += 1
             return jsonify({
@@ -99,9 +97,9 @@ def notificacion():
         telefono = str(data["telefono"])
         mensaje = str(data["mensaje"])
 
-        # -------------------------
+        
         # VALIDACION TELEFONO
-        # -------------------------
+        
         if not telefono.isdigit():
             errores += 1
             return jsonify({
@@ -116,9 +114,9 @@ def notificacion():
 
         fecha = datetime.now()
 
-        # -------------------------
-        # GUARDAR EN MYSQL
-        # -------------------------
+        
+        # GUARDAR EN LA BD (SIN ENVIO REAL DE SMS)
+        
         conexion = get_connection()
         cursor = conexion.cursor()
 
@@ -148,9 +146,9 @@ def notificacion():
             "error": str(e)
         }), 500
 
-# =========================
+
 # LISTAR NOTIFICACIONES
-# =========================
+
 
 @app.route("/listar_notificaciones")
 def listar_notificaciones():
@@ -180,9 +178,7 @@ def listar_notificaciones():
         ]
     })
 
-# =========================
-# MAIN
-# =========================
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
