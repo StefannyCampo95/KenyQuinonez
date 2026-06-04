@@ -1,4 +1,4 @@
-# Sistema Distribuido de Gestión de Turnos Bancarios.
+# Sistema Distribuido de Gestión de Turnos
 
 ---
 
@@ -51,9 +51,9 @@ El sistema permite:
 
 Los usuarios principales son:
 
-- clientes del banco
-- personal administrativo
-- administradores del sistema
+- Clientes del banco
+- Personal administrativo
+- Administradores del sistema
 
 ---
 
@@ -330,10 +330,10 @@ Se utilizaron variables de entorno mediante:
 Ejemplo:
 
 ```
-MYSQL_ROOT_PASSWORD=root
-MYSQL_DATABASE=app_db
-MYSQL_USER=root
-MYSQL_PASSWORD=123456
+MYSQL_ROOT_PASSWORD=
+MYSQL_DATABASE=
+MYSQL_USER=
+MYSQL_PASSWORD=
 ```
 
 ---
