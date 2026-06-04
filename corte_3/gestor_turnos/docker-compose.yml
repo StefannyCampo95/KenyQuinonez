@@ -18,7 +18,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      - db_usuarios
     restart: always
 
   turnos:
@@ -28,40 +28,69 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      - db_turnos
       - notificaciones
       - historial
-    restart: always
-
-  notificaciones:
-    build: ./notificaciones
-    ports:
-      - "5003:5000"
-    env_file:
-      - .env
-    depends_on:
-      - db
     restart: always
 
   historial:
     build: ./historial
     ports:
+      - "5003:5000"
+    env_file:
+      - .env
+    depends_on:
+      - db_historial
+    restart: always
+
+  notificaciones:
+    build: ./notificaciones
+    ports:
       - "5004:5000"
     env_file:
       - .env
     depends_on:
-      - db
+      - db_notificaciones
     restart: always
 
-  db:
+  db_usuarios:
     image: mysql:8.0
-    env_file:
-      - .env
-    ports:
-      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${USUARIOS_DB_NAME}
     volumes:
-      - db_data:/var/lib/mysql
+      - usuarios_data:/var/lib/mysql
+    restart: always
+
+  db_turnos:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${TURNOS_DB_NAME}
+    volumes:
+      - turnos_data:/var/lib/mysql
+    restart: always
+
+  db_historial:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${HISTORIAL_DB_NAME}
+    volumes:
+      - historial_data:/var/lib/mysql
+    restart: always
+
+  db_notificaciones:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${NOTIFICACIONES_DB_NAME}
+    volumes:
+      - notificaciones_data:/var/lib/mysql
     restart: always
 
 volumes:
-  db_data:
+  usuarios_data:
+  turnos_data:
+  historial_data:
+  notificaciones_data:

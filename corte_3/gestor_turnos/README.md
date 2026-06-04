@@ -6,7 +6,7 @@
 
 ## Propósito del sistema
 
-El sistema tiene como propósito gestionar turnos bancarios mediante una arquitectura distribuida basada en microservicios. La aplicación permite registrar usuarios, generar turnos, enviar notificaciones y almacenar eventos del sistema.
+El sistema tiene como propósito gestionar turnos mediante una arquitectura distribuida basada en microservicios. La aplicación permite registrar usuarios, generar turnos, enviar notificaciones y almacenar eventos del sistema.
 
 El proyecto fue desarrollado utilizando Python, Flask, Docker y Docker Compose.
 
@@ -407,13 +407,12 @@ El sistema utiliza Docker Compose para:
 | ---    | ---              |
 | GET    | /health          |
 | GET    | /metricas        |
-| POST   | /crear_usuario   |
-| GET    | /listar_usuarios |
-| POST   | /crear_turno     | 
-| GET    | /listar_turnos   |
+| POST   | /usuario         |
+| GET    | /usuarios        |
+| POST   | /turno           | 
+| GET    | /turnos          |
 | GET    | /historial       |
 | POST   | /notificacion    |
-| GET    | /listar_historial|
 
 ---
 
@@ -489,12 +488,6 @@ docker ps
 
 ---
 
-# 10. CONCLUSIONES
-
-- El proyecto permitió aplicar conceptos fundamentales de sistemas distribuidos mediante una implementación funcional basada en microservicios.
-- Se logró construir una arquitectura desacoplada con tolerancia a fallos, monitoreo y comunicación distribuida.
-- La implementación demostró cómo Docker y Flask permiten desarrollar sistemas escalables y resilientes de forma organizada.
-
 # REPOSITORIO GITHUB
 
 https://github.com/StefannyCampo95/KenyQuinonez.git
@@ -503,6 +496,10 @@ https://github.com/StefannyCampo95/KenyQuinonez.git
 # DOCUMENTO TÉCNICOs
 
 https://www.notion.so/Proyecto-Final-36c76c82496e80f1af07f5e4b3c34940?source=
+
+# LINK DIAPOSITIVAS
+
+https://canva.link/9r9oco5m3owo2w4
 
 
 # EVIDENCIAS DEL FUNCIONAMIENTO DEL SISTEMA CON POSTMAN

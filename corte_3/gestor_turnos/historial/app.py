@@ -5,17 +5,15 @@ import os
 
 app = Flask(__name__)
 
-# =========================
-# MYSQL
-# =========================
+
 
 def get_connection():
 
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
+        host=os.getenv("HISTORIAL_DB_HOST"),
+        user=os.getenv("HISTORIAL_DB_USER"),
+        password=os.getenv("HISTORIAL_DB_PASSWORD"),
+        database=os.getenv("HISTORIAL_DB_NAME")
     )
 
 conexion = get_connection()

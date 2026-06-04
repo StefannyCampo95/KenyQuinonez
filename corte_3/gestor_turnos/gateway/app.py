@@ -150,9 +150,7 @@ def health():
 def metricas():
 
      return jsonify({
-        "service": "gateway",
-        "peticiones": peticiones,
-        "errores": errores,
+        
         "circuitos": circuitos
     })
 
@@ -160,8 +158,8 @@ def metricas():
 # CREAR USUARIO
 
 
-@app.route("/crear_usuario", methods=["POST"])
-def crear_usuario():
+@app.route("/usuario", methods=["POST"])
+def usuario():
 
     global peticiones
     global errores
@@ -216,8 +214,8 @@ def crear_usuario():
 # LISTAR USUARIOS
 
 
-@app.route("/listar_usuarios")
-def listar_usuarios():
+@app.route("/usuarios")
+def usuarios():
 
     if not circuito_disponible("usuarios"):
 
@@ -253,8 +251,8 @@ def listar_usuarios():
 # CREAR TURNO
 
 
-@app.route("/crear_turno", methods=["POST"])
-def crear_turno():
+@app.route("/turno", methods=["POST"])
+def turno():
 
     global peticiones
     global errores
@@ -309,8 +307,8 @@ def crear_turno():
 # LISTAR TURNOS
 
 
-@app.route("/listar_turnos")
-def listar_turnos():
+@app.route("/turnos")
+def turnos():
 
     if not circuito_disponible("turnos"):
 
@@ -376,8 +374,8 @@ def notificacion():
 # LISTAR NOTIFICACIONES
 
 
-@app.route("/listar_notificaciones")
-def listar_notificaciones():
+@app.route("/notificaciones")
+def notificaciones():
 
     if not circuito_disponible("notificaciones"):
 
